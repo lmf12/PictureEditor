@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000">
+
+    <!-- 顶部菜单 -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/open_panel_menu"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:textColor="#ffffff"
+            android:padding="20dp"
+            android:clickable="true"
+            android:text="打开"/>
+
+        <TextView
+            android:id="@+id/save_picture_menu"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:textColor="#ffffff"
+            android:padding="20dp"
+            android:clickable="true"
+            android:text="保存"/>
+
+        <TextView
+            android:id="@+id/upload_picture_menu"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toLeftOf="@id/save_picture_menu"
+            android:textColor="#ffffff"
+            android:padding="20dp"
+            android:clickable="true"
+            android:text="上传"/>
+
+    </RelativeLayout>
+
+    <ImageView
+        android:id="@+id/content_picture"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:padding="50dp"
+        android:src="@mipmap/chen"/>
+
+    <ImageView
+        android:id="@+id/open_tool_menu"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="30dp"
+        android:layout_marginBottom="30dp"
+        android:background="@mipmap/camera"/>
+
+</RelativeLayout>
