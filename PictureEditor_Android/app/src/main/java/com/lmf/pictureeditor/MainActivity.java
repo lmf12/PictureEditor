@@ -85,7 +85,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.dark_layer:
                 hidePanel();
-                hideTool();
                 break;
             case R.id.open_camera_menu:
                 openCamera();
@@ -98,6 +97,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.open_tool_menu:
                 showTool();
+                break;
+            case R.id.tool_layer:
+                hideTool();
+                break;
             default:
                 break;
         }
@@ -126,6 +129,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         darkLayer.setOnClickListener(this);
         openCameraMenu.setOnClickListener(this);
         openGalleryMenu.setOnClickListener(this);
+        toolLayer.setOnClickListener(this);
     }
 
     /**
@@ -151,7 +155,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      * */
     private void showTool() {
 
-        darkLayer.setVisibility(View.VISIBLE);
         toolLayer.setVisibility(View.VISIBLE);
     }
 
@@ -160,7 +163,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      * */
     private void hideTool() {
 
-        darkLayer.setVisibility(View.GONE);
         toolLayer.setVisibility(View.GONE);
     }
 
