@@ -31,6 +31,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private LinearLayout panel, darkLayer, contentLayer, openCameraMenu, openGalleryMenu, toolLayer;
     private Button openPictureButton;
     private RelativeLayout grayscaleEffect, blurEffect, gammaCorrectionEffect, colorizeEffect, imageWatermarkingEffect;
+    private TextView openPanelMenu, uploadPictureMenu, savePictureMenu;
+    private ImageView openToolMenu;
 
     private String filePath;
 
@@ -98,9 +100,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.open_tool_menu:
                 showTool();
+                hideEditMenu();
                 break;
             case R.id.tool_layer:
                 hideTool();
+                showEditMenu();
                 break;
             case R.id.grayscale_effect:
                 System.out.println("grayscale_effect");
@@ -193,6 +197,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     /**
+     * 显示编辑菜单
+     * */
+    private void showEditMenu() {
+
+        openPanelMenu.setVisibility(View.VISIBLE);
+        openToolMenu.setVisibility(View.VISIBLE);
+        uploadPictureMenu.setVisibility(View.VISIBLE);
+        savePictureMenu.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * 隐藏编辑菜单
+     * */
+    private void hideEditMenu() {
+
+        openPanelMenu.setVisibility(View.INVISIBLE);
+        openToolMenu.setVisibility(View.INVISIBLE);
+        uploadPictureMenu.setVisibility(View.INVISIBLE);
+        savePictureMenu.setVisibility(View.INVISIBLE);
+    }
+
+
+    /**
     * 打开相册
     * */
     private void openGallery() {
@@ -244,10 +271,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         content.setLayoutParams(new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT));
 
-        TextView openPanelMenu = (TextView)content.findViewById(R.id.open_panel_menu);
+        openPanelMenu = (TextView)content.findViewById(R.id.open_panel_menu);
         openPanelMenu.setOnClickListener(this);
 
-        ImageView openToolMenu = (ImageView)content.findViewById(R.id.open_tool_menu);
+        uploadPictureMenu = (TextView)content.findViewById(R.id.upload_picture_menu);
+        uploadPictureMenu.setOnClickListener(this);
+
+        savePictureMenu = (TextView)content.findViewById(R.id.save_picture_menu);
+        savePictureMenu.setOnClickListener(this);
+
+        openToolMenu = (ImageView)content.findViewById(R.id.open_tool_menu);
         openToolMenu.setOnClickListener(this);
 
         ImageView contentPicture = (ImageView)content.findViewById(R.id.content_picture);
