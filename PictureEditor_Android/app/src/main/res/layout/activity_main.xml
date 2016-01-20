@@ -139,15 +139,15 @@
             android:paddingTop="60dp"
             android:paddingBottom="60dp"
             android:background="#99555555"
-            android:clickable="true"
             android:visibility="gone"
+            android:clickable="true"
             android:orientation="vertical">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="#ffffff"
-                android:text="工具"/>
+                android:text="图像"/>
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -156,26 +156,44 @@
                 android:weightSum="1"
                 android:orientation="horizontal">
 
-                <LinearLayout
+                <RelativeLayout
+                    android:id="@+id/grayscale_effect"
                     android:layout_width="wrap_content"
                     android:layout_height="60dp"
                     android:layout_weight="0.4"
-                    android:background="#ffffff">
+                    android:clickable="true"
+                    android:background="@drawable/selector_tool_picture">
 
-                </LinearLayout>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentLeft="true"
+                        android:layout_alignParentTop="true"
+                        android:text="黑白"/>
+
+                </RelativeLayout>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="0.2"/>
 
-                <LinearLayout
+                <RelativeLayout
+                    android:id="@+id/blur_effect"
                     android:layout_width="wrap_content"
                     android:layout_height="60dp"
                     android:layout_weight="0.4"
-                    android:background="#ffffff">
+                    android:clickable="true"
+                    android:background="@drawable/selector_tool_picture">
 
-                </LinearLayout>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentLeft="true"
+                        android:layout_alignParentTop="true"
+                        android:text="模糊"/>
+
+                </RelativeLayout>
             </LinearLayout>
 
             <LinearLayout
@@ -185,26 +203,84 @@
                 android:weightSum="1"
                 android:orientation="horizontal">
 
-                <LinearLayout
+                <RelativeLayout
+                    android:id="@+id/gammaCorrection_effect"
                     android:layout_width="wrap_content"
                     android:layout_height="60dp"
                     android:layout_weight="0.4"
-                    android:background="#ffffff">
+                    android:clickable="true"
+                    android:background="@drawable/selector_tool_picture">
 
-                </LinearLayout>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentLeft="true"
+                        android:layout_alignParentTop="true"
+                        android:text="滤镜"/>
+
+                </RelativeLayout>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="0.2"/>
 
-                <LinearLayout
+                <RelativeLayout
+                    android:id="@+id/colorize_effect"
                     android:layout_width="wrap_content"
                     android:layout_height="60dp"
                     android:layout_weight="0.4"
-                    android:background="#ffffff">
+                    android:clickable="true"
+                    android:background="@drawable/selector_tool_picture">
 
-                </LinearLayout>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentLeft="true"
+                        android:layout_alignParentTop="true"
+                        android:text="彩色"/>
+
+                </RelativeLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:weightSum="1"
+                android:orientation="horizontal">
+
+                <RelativeLayout
+                    android:id="@+id/imageWatermarking_effect"
+                    android:layout_width="wrap_content"
+                    android:layout_height="60dp"
+                    android:layout_weight="0.4"
+                    android:clickable="true"
+                    android:background="@drawable/selector_tool_picture">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentLeft="true"
+                        android:layout_alignParentTop="true"
+                        android:text="水印"/>
+
+                </RelativeLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.2"/>
+
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="60dp"
+                    android:layout_weight="0.4"
+                    android:visibility="invisible"
+                    android:background="@drawable/selector_tool_picture">
+
+                </RelativeLayout>
+
             </LinearLayout>
 
             <TextView
@@ -212,7 +288,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="30dp"
                 android:textColor="#ffffff"
-                android:text="工具"/>
+                android:text="人脸"/>
 
             <LinearLayout
                 android:layout_width="match_parent"

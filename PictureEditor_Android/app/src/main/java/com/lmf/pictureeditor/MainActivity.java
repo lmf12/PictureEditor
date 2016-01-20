@@ -30,6 +30,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private LinearLayout panel, darkLayer, contentLayer, openCameraMenu, openGalleryMenu, toolLayer;
     private Button openPictureButton;
+    private RelativeLayout grayscaleEffect, blurEffect, gammaCorrectionEffect, colorizeEffect, imageWatermarkingEffect;
 
     private String filePath;
 
@@ -101,6 +102,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.tool_layer:
                 hideTool();
                 break;
+            case R.id.grayscale_effect:
+                System.out.println("grayscale_effect");
+                break;
+            case R.id.blur_effect:
+                System.out.println("blur_effect");
+                break;
+            case R.id.gammaCorrection_effect:
+                System.out.println("gammaCorrection_effect");
+                break;
+            case R.id.colorize_effect:
+                System.out.println("colorize_effect");
+                break;
+            case R.id.imageWatermarking_effect:
+                System.out.println("imageWatermarking_effect");
+                break;
             default:
                 break;
         }
@@ -118,6 +134,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         openGalleryMenu = (LinearLayout)findViewById(R.id.open_gallery_menu);
         contentLayer = (LinearLayout)findViewById(R.id.content_layer);
         toolLayer = (LinearLayout)findViewById(R.id.tool_layer);
+        grayscaleEffect = (RelativeLayout)findViewById(R.id.grayscale_effect);
+        blurEffect = (RelativeLayout)findViewById(R.id.blur_effect);
+        gammaCorrectionEffect = (RelativeLayout)findViewById(R.id.gammaCorrection_effect);
+        colorizeEffect = (RelativeLayout)findViewById(R.id.colorize_effect);
+        imageWatermarkingEffect = (RelativeLayout)findViewById(R.id.imageWatermarking_effect);
     }
 
     /**
@@ -130,6 +151,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         openCameraMenu.setOnClickListener(this);
         openGalleryMenu.setOnClickListener(this);
         toolLayer.setOnClickListener(this);
+        grayscaleEffect.setOnClickListener(this);
+        blurEffect.setOnClickListener(this);
+        gammaCorrectionEffect.setOnClickListener(this);
+        colorizeEffect.setOnClickListener(this);
+        imageWatermarkingEffect.setOnClickListener(this);
     }
 
     /**
