@@ -1,5 +1,6 @@
 package com.lmf.pictureeditor;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -7,6 +8,8 @@ import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Message;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -18,8 +21,18 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Calendar;
 import java.util.Locale;
 
@@ -28,13 +41,47 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final int OPEN_CAMERA_CODE = 10;  //打开相机代码
     private static final int OPEN_GALLERY_CODE = 11;  //打开相册代码
 
+    private static final String BASE_URL = "http://115.29.144.170/pictureEditor";
+
+    private int TAG_RECEIVE_URL = 1;
+    private int TAG_RECEIVE_PICTURE = 2;
+
     private LinearLayout panel, darkLayer, contentLayer, openCameraMenu, openGalleryMenu, toolLayer;
     private Button openPictureButton;
     private RelativeLayout grayscaleEffect, blurEffect, gammaCorrectionEffect, colorizeEffect, imageWatermarkingEffect;
     private TextView openPanelMenu, uploadPictureMenu, savePictureMenu;
-    private ImageView openToolMenu;
+    private ImageView openToolMenu, contentPicture;
 
-    private String filePath;
+    private ProgressDialog loading;
+    private Toast toast;
+
+    private String filePath;  //照片路径
+    private int currentSelectedId = -1;  //当前选中的效果的id
+    private int effectGroupCode = -1;  //效果组的编码
+    private int effectCode = -1;  //某个效果组下的某个效果的编码
+
+    private Handler mHandler = new Handler() {
+
+        public void handleMessage(Message msg) {
+
+            if (msg.what == TAG_RECEIVE_URL) {
+                receivePicture((String) msg.obj);
+            }
+            else if (msg.what == TAG_RECEIVE_PICTURE) {
+                Bitmap resultBitmap = (Bitmap)msg.obj;
+
+                if (resultBitmap != null) {
+                    resultBitmap = getUsableBitmap(resultBitmap);
+                    contentPicture.setImageBitmap(resultBitmap);
+                }
+                else {
+                    showToast("网络较差,请稍后尝试");
+                }
+                loading.dismiss();
+
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +91,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         initComponent();
         setComponentListener();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        if (toast != null) {
+            toast.cancel();
+        }
     }
 
     @Override
@@ -106,20 +162,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 hideTool();
                 showEditMenu();
                 break;
+            case R.id.upload_picture_menu:
+                if (effectGroupCode == -1 || effectCode == -1) {
+                    showToast("请先选择一种效果");
+                }
+                else {
+                    loading = ProgressDialog.show(MainActivity.this, null,
+                            "正在上传...");
+                    uploadPicture(filePath);
+                }
+                break;
             case R.id.grayscale_effect:
-                System.out.println("grayscale_effect");
-                break;
             case R.id.blur_effect:
-                System.out.println("blur_effect");
-                break;
             case R.id.gammaCorrection_effect:
-                System.out.println("gammaCorrection_effect");
-                break;
             case R.id.colorize_effect:
-                System.out.println("colorize_effect");
-                break;
             case R.id.imageWatermarking_effect:
-                System.out.println("imageWatermarking_effect");
+                cancelSelectedEffect();
+                selectEffect(v.getId());
+                hideTool();
+                showEditMenu();
                 break;
             default:
                 break;
@@ -218,6 +279,56 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         savePictureMenu.setVisibility(View.INVISIBLE);
     }
 
+    /**
+     * 选择中一种效果,高亮
+     * */
+    private void selectEffect(int viewId) {
+
+        RelativeLayout effectMenu = (RelativeLayout)findViewById(viewId);
+        effectMenu.setBackgroundResource(R.drawable.pic_green);
+        ((TextView)effectMenu.getChildAt(0)).setTextColor(getResources().getColor(android.R.color.white));
+        currentSelectedId = viewId;
+
+        switch (viewId) {
+            case R.id.grayscale_effect:
+                effectGroupCode = 1;
+                effectCode = 1;
+                break;
+            case R.id.blur_effect:
+                effectGroupCode = 1;
+                effectCode = 2;
+                break;
+            case R.id.gammaCorrection_effect:
+                effectGroupCode = 1;
+                effectCode = 3;
+                break;
+            case R.id.colorize_effect:
+                effectGroupCode = 1;
+                effectCode = 4;
+                break;
+            case R.id.imageWatermarking_effect:
+                effectGroupCode = 1;
+                effectCode = 5;
+                break;
+            default:
+                break;
+        }
+    }
+
+    /**
+     * 取消选中的效果
+     * */
+    private void cancelSelectedEffect() {
+
+        if (currentSelectedId == -1) {
+            return;
+        }
+        else {
+            RelativeLayout effectMenu = (RelativeLayout) findViewById(currentSelectedId);
+            effectMenu.setBackgroundResource(R.drawable.selector_tool_picture);
+            ((TextView)effectMenu.getChildAt(0)).setTextColor(new TextView(this).getCurrentTextColor());
+        }
+    }
 
     /**
     * 打开相册
@@ -237,8 +348,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);// 打开相机
         String path = createSDCardDir();  //创建路径
         String name = DateFormat.format("yyyyMMdd_hhmmss",
-                Calendar.getInstance(Locale.CHINA))+ ".jpg";
-        filePath = path+"/"+name;
+                Calendar.getInstance(Locale.CHINA)) + ".jpg";
+        filePath = path + "/" + name;
         intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(new File(filePath)));
         startActivityForResult(intent, OPEN_CAMERA_CODE);
     }
@@ -283,7 +394,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         openToolMenu = (ImageView)content.findViewById(R.id.open_tool_menu);
         openToolMenu.setOnClickListener(this);
 
-        ImageView contentPicture = (ImageView)content.findViewById(R.id.content_picture);
+        contentPicture = (ImageView)content.findViewById(R.id.content_picture);
         if (imgPath != null) {
             File file = new File(imgPath);
             if(file.exists()) {
@@ -292,6 +403,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 contentPicture.setImageBitmap(bitmap);
             }
         }
+        filePath = imgPath;  //将路径赋值回来,用于上传图片用
 
         contentLayer.removeAllViews();
         contentLayer.addView(content);
@@ -316,6 +428,146 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     true);
         }
         return bitmap;
+    }
+
+    /**
+     * 上传图片函数
+     * */
+    private void uploadPicture(final String file) {
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                uploadFile(BASE_URL+"/pictureUpload.php", file);
+            }
+        }).start();
+    }
+
+    /**
+     *上传文件至Server，uploadUrl：接收文件的处理页面
+     * */
+    private void uploadFile(String uploadUrl, String srcPath) {
+
+        String end = "\r\n";
+        String twoHyphens = "--";
+        String boundary = "******";
+        try {
+            URL url = new URL(uploadUrl);
+            HttpURLConnection httpURLConnection = (HttpURLConnection) url
+                    .openConnection();
+            // 允许输入输出流
+            httpURLConnection.setDoInput(true);
+            httpURLConnection.setDoOutput(true);
+            httpURLConnection.setUseCaches(false);
+            // 使用POST方法
+            httpURLConnection.setRequestMethod("POST");
+            httpURLConnection.setRequestProperty("Connection", "Keep-Alive");
+            httpURLConnection.setRequestProperty("Charset", "UTF-8");
+            httpURLConnection.setRequestProperty("Content-Type",
+                    "multipart/form-data;boundary=" + boundary);
+
+            DataOutputStream dos = new DataOutputStream(
+                    httpURLConnection.getOutputStream());
+            dos.writeBytes(twoHyphens + boundary + end);
+            dos.writeBytes("Content-Disposition: form-data; name=\"uploadedfile\"; filename=\""
+                    + effectCode+"@"+ srcPath.substring(srcPath.lastIndexOf("/") + 1)
+                    + "\""
+                    + end);
+            dos.writeBytes(end);
+
+            FileInputStream fis = new FileInputStream(srcPath);
+            byte[] buffer = new byte[8192]; // 8k
+            int count = 0;
+            // 读取文件
+            while ((count = fis.read(buffer)) != -1) {
+                dos.write(buffer, 0, count);
+            }
+            fis.close();
+
+            dos.writeBytes(end);
+            dos.writeBytes(twoHyphens + boundary + twoHyphens + end);
+            dos.flush();
+
+            InputStream is = httpURLConnection.getInputStream();
+            InputStreamReader isr = new InputStreamReader(is, "utf-8");
+            BufferedReader br = new BufferedReader(isr);
+            String result = br.readLine();
+
+            Message message = new Message();
+            message.what = TAG_RECEIVE_URL;
+            message.obj = result;
+
+            mHandler.sendMessage(message);
+
+            dos.close();
+            is.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 根据图片的url路径获得Bitmap对象
+     * @param url
+     * @return
+     */
+    private Bitmap returnBitmap(String url) {
+        URL fileUrl = null;
+        Bitmap bitmap = null;
+
+        try {
+            fileUrl = new URL(url);
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            HttpURLConnection conn = (HttpURLConnection) fileUrl.openConnection();
+            conn.setDoInput(true);
+            conn.connect();
+            InputStream is = conn.getInputStream();
+            bitmap = BitmapFactory.decodeStream(is);
+            is.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return bitmap;
+    }
+
+    /**
+     * 接收图片
+     * */
+    private void receivePicture(final String url) {
+
+        loading.dismiss();
+        loading = ProgressDialog.show(MainActivity.this, null,
+                "正在获取...");
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Bitmap bitmap = returnBitmap(BASE_URL+url);
+
+                Message message = new Message();
+                message.what = TAG_RECEIVE_PICTURE;
+                message.obj = bitmap;
+
+                mHandler.sendMessage(message);
+            }
+        }).start();
+
+    }
+
+    /**
+     * 弹出Toast
+     * */
+    private void showToast(String text) {
+
+        if (toast != null) {
+            toast.cancel();
+        }
+        toast = Toast.makeText(this, text, Toast.LENGTH_SHORT);
+        toast.show();
     }
 
 }
