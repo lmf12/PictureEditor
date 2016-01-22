@@ -23,10 +23,12 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -115,20 +117,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 cursor.moveToFirst();
                 String path = cursor.getString(column_index);
 
-//                Intent intent = new Intent(this, PictureActivity.class);
-//                intent.putExtra("filePath", path);
-//                intent.putExtra("selectNum", selectNumber);
-//
-//                startActivity(intent);
-                displayPicture(path);
+                displayPicture(saveTempImg(BitmapFactory.decodeFile(path)));
             }
             else if (requestCode == OPEN_CAMERA_CODE) {
-//                Intent intent = new Intent(this, PictureActivity.class);
-//                intent.putExtra("filePath", filePath);
-//                intent.putExtra("selectNum", selectNumber);
-//
-//                startActivity(intent);
-                displayPicture(filePath);
+                displayPicture(saveTempImg(BitmapFactory.decodeFile(filePath)));
             }
 
             hidePanel();
@@ -355,7 +347,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     /**
-    * 创建文件夹
+    * 创建文件夹,拍照后照片的存放处
     * */
     private String createSDCardDir() {
 
@@ -556,6 +548,74 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }).start();
 
+    }
+
+    /**
+     * 保存临时图片,用于压缩,方便上传
+     * */
+    private String saveTempImg(Bitmap bm) {
+
+        if (bm.getHeight() > 800 || bm.getWidth() > 800) {
+            // 取得想要缩放的matrix参数
+            Matrix matrix = new Matrix();
+            if (bm.getHeight() > bm.getWidth()) {
+                matrix.postScale((float)(800.0  / bm.getHeight()),(float)(800.0  / bm.getHeight()));
+            }
+            else {
+                matrix.postScale((float)(800.0  / bm.getWidth()),(float)(800.0  / bm.getWidth()));
+            }
+            // 得到新的图片
+            bm = Bitmap.createBitmap(bm, 0, 0, bm.getWidth(), bm.getHeight(), matrix,
+                    true);
+        }
+
+        String savePath =  Environment.getExternalStorageDirectory().getAbsolutePath() + "/meitu/temp/";
+        File folder = new File(savePath);
+        if(!folder.exists()) //如果文件夹不存在则创建
+        {
+            folder.mkdirs();
+        }
+        String jpegName = savePath + "displaying.jpg";
+        try {
+            FileOutputStream fout = new FileOutputStream(jpegName);
+            BufferedOutputStream bos = new BufferedOutputStream(fout);
+
+            bm.compress(Bitmap.CompressFormat.JPEG, 80, bos);
+            bos.flush();
+            bos.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return jpegName;
+    }
+
+    /**
+     * 保存图片,用于最终保存
+     * */
+    private void saveImg(Bitmap bm) {
+
+        String savePath =  Environment.getExternalStorageDirectory().getAbsolutePath() + "/meitu/";
+        File folder = new File(savePath);
+        if(!folder.exists()) //如果文件夹不存在则创建
+        {
+            folder.mkdirs();
+        }
+        long dataTake = System.currentTimeMillis();
+        String jpegName = savePath + dataTake +".jpg";
+        try {
+            FileOutputStream fout = new FileOutputStream(jpegName);
+            BufferedOutputStream bos = new BufferedOutputStream(fout);
+
+            bm.compress(Bitmap.CompressFormat.JPEG, 100, bos);
+            bos.flush();
+            bos.close();
+
+            Toast.makeText(this, "图片保存成功", Toast.LENGTH_SHORT).show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
