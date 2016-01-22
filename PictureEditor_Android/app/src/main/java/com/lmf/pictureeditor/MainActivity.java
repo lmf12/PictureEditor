@@ -61,6 +61,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private int currentSelectedId = -1;  //当前选中的效果的id
     private int effectGroupCode = -1;  //效果组的编码
     private int effectCode = -1;  //某个效果组下的某个效果的编码
+    private boolean watermarkable = false;   //是否可以进行添加水印处理
 
     private Handler mHandler = new Handler() {
 
@@ -157,6 +158,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.upload_picture_menu:
                 if (effectGroupCode == -1 || effectCode == -1) {
                     showToast("请先选择一种效果");
+                }
+                else if (watermarkable == false && effectGroupCode == 1 && effectCode == 5) {
+                    showToast("图片太小,无法添加水印");
                 }
                 else {
                     loading = ProgressDialog.show(MainActivity.this, null,
@@ -391,6 +395,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             File file = new File(imgPath);
             if(file.exists()) {
                 Bitmap bitmap = BitmapFactory.decodeFile(imgPath);
+
+                //判断是否可以进行添加水印处理
+                if (bitmap.getHeight() >= 150 && bitmap.getWidth() >= 320) {
+                    watermarkable = true;
+                }
+                else {
+                    watermarkable = false;
+                }
+
                 bitmap = getUsableBitmap(bitmap);
                 contentPicture.setImageBitmap(bitmap);
             }
