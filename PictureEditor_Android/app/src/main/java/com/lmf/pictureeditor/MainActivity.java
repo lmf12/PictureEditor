@@ -51,12 +51,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private LinearLayout panel, darkLayer, contentLayer, openCameraMenu, openGalleryMenu, toolLayer;
     private Button openPictureButton;
     private RelativeLayout grayscaleEffect, blurEffect, gammaCorrectionEffect, colorizeEffect, imageWatermarkingEffect;
-    private TextView openPanelMenu, uploadPictureMenu, savePictureMenu;
+    private TextView openPanelMenu, uploadPictureMenu, savePictureMenu, backInitMenu;
     private ImageView openToolMenu, contentPicture;
+
+    private Bitmap initBitmap;   //初始的图片
+    private Bitmap currentBitmap;   //但前编辑后的图片
 
     private ProgressDialog loading;
     private Toast toast;
 
+    private String initPath;  //初始照片的路径
     private String filePath;  //照片路径
     private int currentSelectedId = -1;  //当前选中的效果的id
     private int effectGroupCode = -1;  //效果组的编码
@@ -76,6 +80,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (resultBitmap != null) {
                     resultBitmap = getUsableBitmap(resultBitmap);
                     contentPicture.setImageBitmap(resultBitmap);
+
+                    currentBitmap = resultBitmap;
+                    backInitMenu.setVisibility(View.VISIBLE);
+
+                    //修改完一次后,将路径改为修改后的图片,方便多次修改
+                    filePath = saveTempImg(resultBitmap, "displaying_temp.jpg");
                 }
                 else {
                     showToast("网络较差,请稍后尝试");
@@ -118,10 +128,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 cursor.moveToFirst();
                 String path = cursor.getString(column_index);
 
-                displayPicture(saveTempImg(BitmapFactory.decodeFile(path)));
+                displayPicture(saveTempImg(BitmapFactory.decodeFile(path), "displaying.jpg"));
             }
             else if (requestCode == OPEN_CAMERA_CODE) {
-                displayPicture(saveTempImg(BitmapFactory.decodeFile(filePath)));
+                displayPicture(saveTempImg(BitmapFactory.decodeFile(filePath), "displaying.jpg"));
             }
 
             hidePanel();
@@ -150,6 +160,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.open_tool_menu:
                 showTool();
                 hideEditMenu();
+                break;
+            case R.id.back_init_menu:
+                backInitContentPicture();
                 break;
             case R.id.tool_layer:
                 hideTool();
@@ -262,6 +275,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         openToolMenu.setVisibility(View.VISIBLE);
         uploadPictureMenu.setVisibility(View.VISIBLE);
         savePictureMenu.setVisibility(View.VISIBLE);
+        if (currentBitmap != null) {
+            backInitMenu.setVisibility(View.VISIBLE);
+        }
     }
 
     /**
@@ -273,6 +289,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         openToolMenu.setVisibility(View.INVISIBLE);
         uploadPictureMenu.setVisibility(View.INVISIBLE);
         savePictureMenu.setVisibility(View.INVISIBLE);
+        backInitMenu.setVisibility(View.GONE);
     }
 
     /**
@@ -390,6 +407,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         openToolMenu = (ImageView)content.findViewById(R.id.open_tool_menu);
         openToolMenu.setOnClickListener(this);
 
+        backInitMenu = (TextView)content.findViewById(R.id.back_init_menu);
+        backInitMenu.setOnClickListener(this);
+
         contentPicture = (ImageView)content.findViewById(R.id.content_picture);
         if (imgPath != null) {
             File file = new File(imgPath);
@@ -406,12 +426,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 bitmap = getUsableBitmap(bitmap);
                 contentPicture.setImageBitmap(bitmap);
+                initBitmap = bitmap;
             }
         }
         filePath = imgPath;  //将路径赋值回来,用于上传图片用
+        initPath = filePath;  //保存下最初始的图片
 
         contentLayer.removeAllViews();
         contentLayer.addView(content);
+    }
+
+    /**
+     * 返回初始的图片
+     * */
+    private void backInitContentPicture() {
+
+        backInitMenu.setVisibility(View.GONE);
+        contentPicture.setImageBitmap(initBitmap);
+        filePath = initPath;
+        currentBitmap = null;
     }
 
     /**
@@ -566,7 +599,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     /**
      * 保存临时图片,用于压缩,方便上传
      * */
-    private String saveTempImg(Bitmap bm) {
+    private String saveTempImg(Bitmap bm, String picName) {
 
         if (bm.getHeight() > 800 || bm.getWidth() > 800) {
             // 取得想要缩放的matrix参数
@@ -588,7 +621,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         {
             folder.mkdirs();
         }
-        String jpegName = savePath + "displaying.jpg";
+        String jpegName = savePath + picName;
         try {
             FileOutputStream fout = new FileOutputStream(jpegName);
             BufferedOutputStream bos = new BufferedOutputStream(fout);
