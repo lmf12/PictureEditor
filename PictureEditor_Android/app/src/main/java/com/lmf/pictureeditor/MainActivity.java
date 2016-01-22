@@ -14,6 +14,7 @@ import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.format.DateFormat;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -427,8 +428,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 bitmap = getUsableBitmap(bitmap);
                 contentPicture.setImageBitmap(bitmap);
                 initBitmap = bitmap;
+                backInitContentPicture();
             }
         }
+
+        contentPicture.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+
+                if (event.getAction() == MotionEvent.ACTION_UP) {
+                    if (currentBitmap != null) {
+                        contentPicture.setImageBitmap(currentBitmap);
+                    }
+                }
+                else if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    contentPicture.setImageBitmap(initBitmap);
+                }
+
+                return true;
+            }
+        });
+
         filePath = imgPath;  //将路径赋值回来,用于上传图片用
         initPath = filePath;  //保存下最初始的图片
 
