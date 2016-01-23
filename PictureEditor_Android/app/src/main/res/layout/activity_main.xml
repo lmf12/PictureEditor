@@ -175,14 +175,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                android:weightSum="1"
                 android:orientation="horizontal">
 
                 <RelativeLayout
                     android:id="@+id/grayscale_effect"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0px"
                     android:layout_height="60dp"
-                    android:layout_weight="0.4"
+                    android:layout_weight="1"
                     android:clickable="true"
                     android:background="@drawable/selector_tool_picture">
 
@@ -196,15 +195,14 @@
                 </RelativeLayout>
 
                 <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="0.2"/>
+                    android:layout_width="40dp"
+                    android:layout_height="wrap_content"/>
 
                 <RelativeLayout
                     android:id="@+id/blur_effect"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0px"
                     android:layout_height="60dp"
-                    android:layout_weight="0.4"
+                    android:layout_weight="1"
                     android:clickable="true"
                     android:background="@drawable/selector_tool_picture">
 
@@ -222,14 +220,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                android:weightSum="1"
                 android:orientation="horizontal">
 
                 <RelativeLayout
                     android:id="@+id/gammaCorrection_effect"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0px"
                     android:layout_height="60dp"
-                    android:layout_weight="0.4"
+                    android:layout_weight="1"
                     android:clickable="true"
                     android:background="@drawable/selector_tool_picture">
 
@@ -243,15 +240,14 @@
                 </RelativeLayout>
 
                 <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="0.2"/>
+                    android:layout_width="40dp"
+                    android:layout_height="wrap_content"/>
 
                 <RelativeLayout
                     android:id="@+id/colorize_effect"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0px"
                     android:layout_height="60dp"
-                    android:layout_weight="0.4"
+                    android:layout_weight="1"
                     android:clickable="true"
                     android:background="@drawable/selector_tool_picture">
 
@@ -269,14 +265,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                android:weightSum="1"
                 android:orientation="horizontal">
 
                 <RelativeLayout
                     android:id="@+id/imageWatermarking_effect"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0px"
                     android:layout_height="60dp"
-                    android:layout_weight="0.4"
+                    android:layout_weight="1"
                     android:clickable="true"
                     android:background="@drawable/selector_tool_picture">
 
@@ -290,14 +285,13 @@
                 </RelativeLayout>
 
                 <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="0.2"/>
+                    android:layout_width="40dp"
+                    android:layout_height="wrap_content"/>
 
                 <RelativeLayout
-                    android:layout_width="wrap_content"
+                    android:layout_width="0px"
                     android:layout_height="60dp"
-                    android:layout_weight="0.4"
+                    android:layout_weight="1"
                     android:visibility="invisible"
                     android:background="@drawable/selector_tool_picture">
 
