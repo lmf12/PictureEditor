@@ -48,10 +48,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private int TAG_RECEIVE_URL = 1;
     private int TAG_RECEIVE_PICTURE = 2;
+    private int TAG_RECEIVE_DATA = 3;
 
     private LinearLayout panel, darkLayer, contentLayer, openCameraMenu, openGalleryMenu, toolLayer;
     private Button openPictureButton;
     private RelativeLayout grayscaleEffect, blurEffect, gammaCorrectionEffect, colorizeEffect, imageWatermarkingEffect;
+    private RelativeLayout ageEffect;
     private TextView openPanelMenu, uploadPictureMenu, savePictureMenu, backInitMenu;
     private ImageView openToolMenu, contentPicture;
 
@@ -93,6 +95,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 loading.dismiss();
 
+            }
+            else if (msg.what == TAG_RECEIVE_DATA) {
+                String data = (String)msg.obj;
+                System.out.println(data);
+                loading.dismiss();
             }
         }
     };
@@ -187,6 +194,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.gammaCorrection_effect:
             case R.id.colorize_effect:
             case R.id.imageWatermarking_effect:
+            case R.id.age_effect:
                 cancelSelectedEffect();
                 selectEffect(v.getId());
                 hideTool();
@@ -214,6 +222,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         gammaCorrectionEffect = (RelativeLayout)findViewById(R.id.gammaCorrection_effect);
         colorizeEffect = (RelativeLayout)findViewById(R.id.colorize_effect);
         imageWatermarkingEffect = (RelativeLayout)findViewById(R.id.imageWatermarking_effect);
+        ageEffect = (RelativeLayout)findViewById(R.id.age_effect);
     }
 
     /**
@@ -231,6 +240,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         gammaCorrectionEffect.setOnClickListener(this);
         colorizeEffect.setOnClickListener(this);
         imageWatermarkingEffect.setOnClickListener(this);
+        ageEffect.setOnClickListener(this);
     }
 
     /**
@@ -298,11 +308,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      * */
     private void selectEffect(int viewId) {
 
-        RelativeLayout effectMenu = (RelativeLayout)findViewById(viewId);
-        effectMenu.setBackgroundResource(R.drawable.pic_green);
-        ((TextView)effectMenu.getChildAt(0)).setTextColor(getResources().getColor(android.R.color.white));
-        currentSelectedId = viewId;
-
         switch (viewId) {
             case R.id.grayscale_effect:
                 effectGroupCode = 1;
@@ -324,9 +329,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 effectGroupCode = 1;
                 effectCode = 5;
                 break;
+            case R.id.age_effect:
+                effectGroupCode = 2;
+                effectCode = 2;
+                break;
             default:
                 break;
         }
+
+        RelativeLayout effectMenu = (RelativeLayout)findViewById(viewId);
+        effectMenu.setBackgroundResource(R.drawable.pic_green);
+        if (effectGroupCode == 1) {
+            ((TextView) effectMenu.getChildAt(0)).setTextColor(getResources().getColor(android.R.color.white));
+        }
+        else if (effectGroupCode == 2) {
+            ((TextView) effectMenu.getChildAt(1)).setTextColor(getResources().getColor(android.R.color.white));
+        }
+        currentSelectedId = viewId;
     }
 
     /**
@@ -340,7 +359,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         else {
             RelativeLayout effectMenu = (RelativeLayout) findViewById(currentSelectedId);
             effectMenu.setBackgroundResource(R.drawable.selector_tool_picture);
-            ((TextView)effectMenu.getChildAt(0)).setTextColor(new TextView(this).getCurrentTextColor());
+            if (effectGroupCode == 1) {
+                ((TextView)effectMenu.getChildAt(0)).setTextColor(new TextView(this).getCurrentTextColor());
+            }
+            else if (effectGroupCode == 2) {
+                ((TextView)effectMenu.getChildAt(1)).setTextColor(new TextView(this).getCurrentTextColor());
+            }
         }
     }
 
@@ -528,7 +552,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     httpURLConnection.getOutputStream());
             dos.writeBytes(twoHyphens + boundary + end);
             dos.writeBytes("Content-Disposition: form-data; name=\"uploadedfile\"; filename=\""
-                    + effectCode+"@"+ srcPath.substring(srcPath.lastIndexOf("/") + 1)
+                    + effectGroupCode + "@" + effectCode+"@"+ srcPath.substring(srcPath.lastIndexOf("/") + 1)
                     + "\""
                     + end);
             dos.writeBytes(end);
@@ -549,10 +573,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             InputStream is = httpURLConnection.getInputStream();
             InputStreamReader isr = new InputStreamReader(is, "utf-8");
             BufferedReader br = new BufferedReader(isr);
-            String result = br.readLine();
+            String result = br.readLine();  //这里读取一行,针对url的情况
 
             Message message = new Message();
-            message.what = TAG_RECEIVE_URL;
+            if (effectGroupCode == 1) {
+                message.what = TAG_RECEIVE_URL;
+            }
+            else if (effectGroupCode == 2) {
+                message.what = TAG_RECEIVE_DATA;
+
+                String str;    //这里循环读出json数据
+                StringBuffer stringBuffer = new StringBuffer();
+                while((str = br.readLine())!= null){
+                    stringBuffer.append(str);
+                }
+                result = stringBuffer.toString();
+            }
             message.obj = result;
 
             mHandler.sendMessage(message);

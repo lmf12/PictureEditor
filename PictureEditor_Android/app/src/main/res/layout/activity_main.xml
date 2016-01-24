@@ -339,6 +339,7 @@
                     android:layout_height="wrap_content"/>
 
                 <RelativeLayout
+                    android:id="@+id/age_effect"
                     android:layout_width="0px"
                     android:layout_height="60dp"
                     android:layout_weight="1"
