@@ -757,6 +757,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             JSONObject object = new JSONObject(data);
             JSONArray faces = object.optJSONArray("face");
             if (faces != null) {
+                int bottomNum = 0;   //在底部显示的数量
+                int topNum = 0;   //在顶部显示的数量
                 for (int i=0; i<faces.length(); ++i) {
                     JSONObject face = faces.optJSONObject(i);
                     JSONObject position = face.optJSONObject("position");
@@ -778,6 +780,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     Paint paint = new Paint();
                     paint.setColor(Color.WHITE);
                     paint.setStyle(Paint.Style.STROKE);//设置空心
+                    paint.setAntiAlias(true);
 
                     Canvas canvas = new Canvas(rectBitmap);
                     canvas.drawRect(0, 0, rectWidth - 2, rectHeight - 2, paint);
@@ -785,41 +788,96 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     //绘制标签
                     int tagHeight = 100;   //标签的高度
                     int tagWidth = 120;   //标签的宽度
-                    Bitmap maskBitmap = Bitmap.createBitmap(rectWidth,
-                            rectHeight + tagHeight, Bitmap.Config.ARGB_8888);
 
-                    canvas = new Canvas(maskBitmap);
-                    canvas.drawBitmap(rectBitmap, 0, tagHeight, paint);
+                    if (rectWidth >= tagWidth && initBitmap.getHeight()*(centerY - height/2)/100 >= tagHeight) {
+                        Bitmap maskBitmap = Bitmap.createBitmap(rectWidth,
+                                rectHeight + tagHeight, Bitmap.Config.ARGB_8888);
 
-                    paint.setStyle(Paint.Style.FILL);
-                    paint.setColor(Color.GRAY);
+                        canvas = new Canvas(maskBitmap);
+                        canvas.drawBitmap(rectBitmap, 0, tagHeight, paint);
 
-                    Path path = new Path();
-                    path.moveTo((rectWidth-tagWidth)/2, 0);// 此点为多边形的起点
-                    path.lineTo((rectWidth - tagWidth) / 2 + tagWidth, 0);
-                    path.lineTo((rectWidth - tagWidth) / 2 + tagWidth, tagHeight - 20);
-                    path.lineTo(rectWidth/2+15, tagHeight - 20);
-                    path.lineTo(rectWidth/2, 99);
-                    path.lineTo(rectWidth/2-15, tagHeight - 20);
-                    path.lineTo((rectWidth - tagWidth) / 2, tagHeight - 20);
-                    path.close(); // 使这些点构成封闭的多边形
-                    canvas.drawPath(path, paint);
+                        paint.setStyle(Paint.Style.FILL);
+                        paint.setColor(Color.GRAY);
 
-                    paint.setTextSize(30);
-                    paint.setColor(Color.WHITE);
-                    String tagString = "";
-                    if ("Female".equals(gender)) {
-                        tagString += "女";
+                        Path path = new Path();
+                        path.moveTo((rectWidth - tagWidth) / 2, 0);// 此点为多边形的起点
+                        path.lineTo((rectWidth - tagWidth) / 2 + tagWidth, 0);
+                        path.lineTo((rectWidth - tagWidth) / 2 + tagWidth, tagHeight - 20);
+                        path.lineTo(rectWidth / 2 + 15, tagHeight - 20);
+                        path.lineTo(rectWidth / 2, 99);
+                        path.lineTo(rectWidth / 2 - 15, tagHeight - 20);
+                        path.lineTo((rectWidth - tagWidth) / 2, tagHeight - 20);
+                        path.close(); // 使这些点构成封闭的多边形
+                        canvas.drawPath(path, paint);
+
+                        paint.setTextSize(30);
+                        paint.setColor(Color.WHITE);
+                        String tagString = "";
+                        if ("Female".equals(gender)) {
+                            tagString += "女";
+                        } else {
+                            tagString += "男";
+                        }
+                        tagString += "  " + age;
+                        canvas.drawText(tagString, (rectWidth - tagWidth) / 2 + 20, 50, paint);
+
+                        //合并图片
+                        displayBitmap = mergeBitmap(displayBitmap == null ? (currentBitmap == null ? initBitmap : currentBitmap) : displayBitmap,
+                                maskBitmap, centerX, centerY - tagHeight / 2.0 / initBitmap.getHeight() * 100);
                     }
                     else {
-                        tagString += "男";
-                    }
-                    tagString += "  " + age;
-                    canvas.drawText(tagString, (rectWidth-tagWidth)/2+20, 50, paint);
+                        int maskWidth = initBitmap.getWidth();
+                        int maskHeight = initBitmap.getHeight();
+                        Bitmap maskBitmap = Bitmap.createBitmap(maskWidth,
+                                maskHeight, Bitmap.Config.ARGB_8888);
 
-                    //合并图片
-                    displayBitmap = mergeBitmap(displayBitmap == null ? (currentBitmap == null ? initBitmap : currentBitmap) : displayBitmap,
-                                            maskBitmap, centerX, centerY-tagHeight/2.0/initBitmap.getHeight()*100);
+                        int rectX = (int)(maskWidth*centerX/100-rectWidth/2);
+                        int rectY = (int)(maskHeight*centerY/100-rectHeight/2);
+                        canvas = new Canvas(maskBitmap);
+                        canvas.drawBitmap(rectBitmap, rectX,
+                                rectY, paint);
+
+                        paint.setStyle(Paint.Style.FILL);
+                        paint.setColor(Color.GRAY);
+
+                        int tagX = bottomNum*(tagWidth+10);
+                        int tagY = maskHeight - tagHeight+20;
+
+                        if (tagX+tagWidth >= maskWidth) {
+                            tagX = topNum * (tagWidth+10);
+                            tagY = 0;
+                            topNum++;
+                        }
+
+                        canvas.drawRect(tagX, tagY, tagX+tagWidth, tagY+tagHeight-20, paint);
+
+                        paint.setColor(Color.WHITE);
+                        if (topNum == 0) {
+                            canvas.drawLine(rectX + rectWidth / 2, rectY + rectHeight, tagX + tagWidth / 2, tagY, paint);
+                        }
+                        else {
+                            canvas.drawLine(rectX + rectWidth / 2, rectY, tagX + tagWidth / 2, tagY, paint);
+                        }
+
+                        paint.setTextSize(30);
+                        String tagString = "";
+                        if ("Female".equals(gender)) {
+                            tagString += "女";
+                        } else {
+                            tagString += "男";
+                        }
+                        tagString += "  " + age;
+                        canvas.drawText(tagString, tagX + 20, tagY + 50, paint);
+
+                        //合并图片
+                        displayBitmap = mergeBitmap(displayBitmap == null ? (currentBitmap == null ? initBitmap : currentBitmap) : displayBitmap,
+                                maskBitmap, 50, 50);
+
+                        bottomNum++;
+                    }
+
+                }
+                if (displayBitmap != null) {
                     contentPicture.setImageBitmap(displayBitmap);
                 }
             }
