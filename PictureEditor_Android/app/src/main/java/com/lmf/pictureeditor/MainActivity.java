@@ -5,7 +5,11 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Matrix;
+import android.graphics.Paint;
+import android.graphics.Path;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.Handler;
@@ -23,6 +27,10 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -59,6 +67,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private Bitmap initBitmap;   //初始的图片
     private Bitmap currentBitmap;   //但前编辑后的图片
+    private Bitmap displayBitmap;   //用于展示一些信息用,不参与编辑
 
     private ProgressDialog loading;
     private Toast toast;
@@ -89,6 +98,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                     //修改完一次后,将路径改为修改后的图片,方便多次修改
                     filePath = saveTempImg(resultBitmap, "displaying_temp.jpg");
+                    displayBitmap = null;
                 }
                 else {
                     showToast("网络较差,请稍后尝试");
@@ -98,7 +108,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
             else if (msg.what == TAG_RECEIVE_DATA) {
                 String data = (String)msg.obj;
-                System.out.println(data);
+                showAgeEffect(data);
                 loading.dismiss();
             }
         }
@@ -461,7 +471,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public boolean onTouch(View v, MotionEvent event) {
 
                 if (event.getAction() == MotionEvent.ACTION_UP) {
-                    if (currentBitmap != null) {
+                    if (displayBitmap != null) {
+                        contentPicture.setImageBitmap(displayBitmap);
+                    }
+                    else if (currentBitmap != null) {
                         contentPicture.setImageBitmap(currentBitmap);
                     }
                 }
@@ -489,6 +502,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         contentPicture.setImageBitmap(initBitmap);
         filePath = initPath;
         currentBitmap = null;
+        displayBitmap = null;
     }
 
     /**
@@ -573,11 +587,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             InputStream is = httpURLConnection.getInputStream();
             InputStreamReader isr = new InputStreamReader(is, "utf-8");
             BufferedReader br = new BufferedReader(isr);
-            String result = br.readLine();  //这里读取一行,针对url的情况
+            String result = null;
 
             Message message = new Message();
             if (effectGroupCode == 1) {
                 message.what = TAG_RECEIVE_URL;
+
+                result = br.readLine();  //这里读取一行,针对url的情况
             }
             else if (effectGroupCode == 2) {
                 message.what = TAG_RECEIVE_DATA;
@@ -730,6 +746,108 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
         toast = Toast.makeText(this, text, Toast.LENGTH_SHORT);
         toast.show();
+    }
+
+    /**
+     * 年龄预测效果
+     * */
+    private void showAgeEffect(String data) {
+
+        try {
+            JSONObject object = new JSONObject(data);
+            JSONArray faces = object.optJSONArray("face");
+            if (faces != null) {
+                for (int i=0; i<faces.length(); ++i) {
+                    JSONObject face = faces.optJSONObject(i);
+                    JSONObject position = face.optJSONObject("position");
+                    JSONObject center = position.optJSONObject("center");
+                    JSONObject attribute = face.optJSONObject("attribute");
+                    double centerX = center.optDouble("x");
+                    double centerY = center.optDouble("y");
+                    double width = position.optDouble("width");
+                    double height = position.optDouble("height");
+                    int age = attribute.optJSONObject("age").optInt("value");
+                    String gender = attribute.optJSONObject("gender").optString("value");
+
+                    //获取遮罩图片
+                    int rectWidth = (int)(initBitmap.getWidth()*width/100);
+                    int rectHeight = (int)(initBitmap.getHeight()*height/100);
+                    Bitmap rectBitmap = Bitmap.createBitmap(rectWidth,
+                            rectHeight, Bitmap.Config.ARGB_8888);
+
+                    Paint paint = new Paint();
+                    paint.setColor(Color.WHITE);
+                    paint.setStyle(Paint.Style.STROKE);//设置空心
+
+                    Canvas canvas = new Canvas(rectBitmap);
+                    canvas.drawRect(0, 0, rectWidth - 2, rectHeight - 2, paint);
+
+                    //绘制标签
+                    int tagHeight = 100;   //标签的高度
+                    int tagWidth = 120;   //标签的宽度
+                    Bitmap maskBitmap = Bitmap.createBitmap(rectWidth,
+                            rectHeight + tagHeight, Bitmap.Config.ARGB_8888);
+
+                    canvas = new Canvas(maskBitmap);
+                    canvas.drawBitmap(rectBitmap, 0, tagHeight, paint);
+
+                    paint.setStyle(Paint.Style.FILL);
+                    paint.setColor(Color.GRAY);
+
+                    Path path = new Path();
+                    path.moveTo((rectWidth-tagWidth)/2, 0);// 此点为多边形的起点
+                    path.lineTo((rectWidth - tagWidth) / 2 + tagWidth, 0);
+                    path.lineTo((rectWidth - tagWidth) / 2 + tagWidth, tagHeight - 20);
+                    path.lineTo(rectWidth/2+15, tagHeight - 20);
+                    path.lineTo(rectWidth/2, 99);
+                    path.lineTo(rectWidth/2-15, tagHeight - 20);
+                    path.lineTo((rectWidth - tagWidth) / 2, tagHeight - 20);
+                    path.close(); // 使这些点构成封闭的多边形
+                    canvas.drawPath(path, paint);
+
+                    paint.setTextSize(30);
+                    paint.setColor(Color.WHITE);
+                    String tagString = "";
+                    if ("Female".equals(gender)) {
+                        tagString += "女";
+                    }
+                    else {
+                        tagString += "男";
+                    }
+                    tagString += "  " + age;
+                    canvas.drawText(tagString, (rectWidth-tagWidth)/2+20, 50, paint);
+
+                    //合并图片
+                    displayBitmap = mergeBitmap(displayBitmap == null ? (currentBitmap == null ? initBitmap : currentBitmap) : displayBitmap,
+                                            maskBitmap, centerX, centerY-tagHeight/2.0/initBitmap.getHeight()*100);
+                    contentPicture.setImageBitmap(displayBitmap);
+                }
+            }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 合并两个bitmap,x和y为百分比,遮罩的中心位置
+     * */
+    public static Bitmap mergeBitmap(Bitmap background, Bitmap foreground, double x, double y) {
+        if (background == null) {
+            return null;
+        }
+        int bgWidth = background.getWidth();
+        int bgHeight = background.getHeight();
+        int fgWidth = foreground.getWidth();
+        int fgHeight = foreground.getHeight();
+        Bitmap newmap = Bitmap
+                .createBitmap(bgWidth, bgHeight, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(newmap);
+        canvas.drawBitmap(background, 0, 0, null);
+        canvas.drawBitmap(foreground, (int)(bgWidth*x/100-fgWidth/2), (int)(bgHeight*y/100-fgHeight/2), null);
+        canvas.save(Canvas.ALL_SAVE_FLAG);
+        canvas.restore();
+        return newmap;
     }
 
 }

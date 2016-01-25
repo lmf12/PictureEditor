@@ -105,7 +105,7 @@ function ageJudgement($img_url) {
 	$img_url = urlencode($img_url);
 	$api_key = "567e6e7aeab4003e96d7088201356ce9";
 	$api_secret = "gqBNR0lFhu1FZU7xtFdDWZgOxlkbKcb3";
-	$attribute = "age";
+	$attribute = "age,gender";
 	$request_url = "http://apicn.faceplusplus.com/v2/detection/detect?api_key=".$api_key."&api_secret=".$api_secret."&url=".$img_url."&attribute=".$attribute;
 	$re=file_get_contents($request_url);
 
