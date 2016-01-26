@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private LinearLayout panel, darkLayer, contentLayer, openCameraMenu, openGalleryMenu, toolLayer;
     private Button openPictureButton;
     private RelativeLayout grayscaleEffect, blurEffect, gammaCorrectionEffect, colorizeEffect, imageWatermarkingEffect;
-    private RelativeLayout ageEffect;
+    private RelativeLayout ageEffect, glassesEffect, hatEffect, replaceEffect;
     private TextView openPanelMenu, uploadPictureMenu, savePictureMenu, backInitMenu;
     private ImageView openToolMenu, contentPicture;
 
@@ -108,7 +108,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
             else if (msg.what == TAG_RECEIVE_DATA) {
                 String data = (String)msg.obj;
-                showAgeEffect(data);
+                switch (effectCode) {
+                    case 1:
+                        showGlassesEffect(data);
+                        backInitMenu.setVisibility(View.VISIBLE);
+
+                        //修改完一次后,将路径改为修改后的图片,方便多次修改
+                        filePath = saveTempImg(currentBitmap, "displaying_temp.jpg");
+                        displayBitmap = null;
+                        break;
+                    case 2:
+                        showAgeEffect(data);
+                        break;
+                    case 3:
+                        showHatEffect(data);
+                        break;
+                    case 4:
+                        showReplaceFaceEffect(data);
+                        break;
+                    case 5:
+                        break;
+                    default:
+                        break;
+                }
                 loading.dismiss();
             }
         }
@@ -205,6 +227,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.colorize_effect:
             case R.id.imageWatermarking_effect:
             case R.id.age_effect:
+            case R.id.glasses_effect:
+            case R.id.hat_effect:
+            case R.id.replace_effect:
                 cancelSelectedEffect();
                 selectEffect(v.getId());
                 hideTool();
@@ -233,6 +258,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         colorizeEffect = (RelativeLayout)findViewById(R.id.colorize_effect);
         imageWatermarkingEffect = (RelativeLayout)findViewById(R.id.imageWatermarking_effect);
         ageEffect = (RelativeLayout)findViewById(R.id.age_effect);
+        glassesEffect = (RelativeLayout)findViewById(R.id.glasses_effect);
+        hatEffect = (RelativeLayout)findViewById(R.id.hat_effect);
+        replaceEffect = (RelativeLayout)findViewById(R.id.replace_effect);
     }
 
     /**
@@ -251,6 +279,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         colorizeEffect.setOnClickListener(this);
         imageWatermarkingEffect.setOnClickListener(this);
         ageEffect.setOnClickListener(this);
+        glassesEffect.setOnClickListener(this);
+        hatEffect.setOnClickListener(this);
+        replaceEffect.setOnClickListener(this);
     }
 
     /**
@@ -339,9 +370,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 effectGroupCode = 1;
                 effectCode = 5;
                 break;
+            case R.id.glasses_effect:
+                effectGroupCode = 2;
+                effectCode = 1;
+                break;
             case R.id.age_effect:
                 effectGroupCode = 2;
                 effectCode = 2;
+                break;
+            case R.id.hat_effect:
+                effectGroupCode = 2;
+                effectCode = 3;
+                break;
+            case R.id.replace_effect:
+                effectGroupCode = 2;
+                effectCode = 4;
                 break;
             default:
                 break;
@@ -379,8 +422,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     /**
-    * 打开相册
-    * */
+     * 打开相册
+     * */
     private void openGallery() {
 
         Intent intent = new Intent(Intent.ACTION_PICK);// 打开相册
@@ -888,9 +931,79 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     /**
+     * 戴眼镜效果
+     * */
+    private void showGlassesEffect(String data) {
+
+        try {
+            JSONObject object = new JSONObject(data);
+            JSONArray faces = object.optJSONArray("face");
+            if (faces != null) {
+                for (int i=0; i<faces.length(); ++i) {
+                    JSONObject face = faces.optJSONObject(i);
+                    JSONObject position = face.optJSONObject("position");
+                    JSONObject center = position.optJSONObject("center");
+                    double centerX = center.optDouble("x");
+                    double centerY = center.optDouble("y");
+                    double width = position.optDouble("width");
+                    double height = position.optDouble("height");
+                    double eyeLeftX = position.optJSONObject("eye_left").optDouble("x");
+                    double eyeLeftY = position.optJSONObject("eye_left").optDouble("y");
+                    double eyeRightX = position.optJSONObject("eye_right").optDouble("x");
+                    double eyeRightY = position.optJSONObject("eye_right").optDouble("y");
+
+                    //获取遮罩图片
+                    Bitmap maskBitmap = BitmapFactory.decodeResource(getResources(),
+                            R.mipmap.glasses1);
+
+                    double glassesCenterX = (eyeLeftX + eyeRightX) / 2;
+                    double glassesCenterY = (eyeLeftY + eyeRightY) / 2;
+                    double faceWidth = initBitmap.getWidth()*width/100;
+
+                    Matrix matrix = new Matrix();
+                    matrix.postScale((float)(faceWidth  / maskBitmap.getWidth()),(float)(faceWidth  / maskBitmap.getWidth()));
+                    maskBitmap = Bitmap.createBitmap(maskBitmap, 0, 0, maskBitmap.getWidth(), maskBitmap.getHeight(), matrix,
+                            true);
+
+                    //合并图片
+                    currentBitmap = mergeBitmap(currentBitmap == null ? initBitmap : currentBitmap,
+                            maskBitmap, glassesCenterX, glassesCenterY);
+                }
+                if (currentBitmap != null) {
+                    contentPicture.setImageBitmap(currentBitmap);
+                }
+            }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 戴帽子效果
+     * */
+    private void showHatEffect(String data) {
+
+    }
+
+    /**
+     * 变脸效果
+     * */
+    private void showReplaceFaceEffect(String data) {
+
+    }
+
+    /**
+     * 相似度效果
+     * */
+    private void showSimilarEffect(String data) {
+
+    }
+
+    /**
      * 合并两个bitmap,x和y为百分比,遮罩的中心位置
      * */
-    public static Bitmap mergeBitmap(Bitmap background, Bitmap foreground, double x, double y) {
+    private Bitmap mergeBitmap(Bitmap background, Bitmap foreground, double x, double y) {
         if (background == null) {
             return null;
         }

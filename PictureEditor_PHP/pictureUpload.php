@@ -46,13 +46,16 @@
 
 	   		switch ($edit_type) {
 	   			case '1':
+	   				echo glasses($base_url.'/upload/'.$now_time."_".$file_name);
 	   				break;
 	   			case '2':
 	   				echo ageJudgement($base_url.'/upload/'.$now_time."_".$file_name);
 	   				break;
 	   			case '3':
+	   				echo hat($base_url.'/upload/'.$now_time."_".$file_name);
 	   				break;
 	   			case '4':
+	   				echo replaceFace($base_url.'/upload/'.$now_time."_".$file_name);
 	   				break;
 	   			case '5':
 	   				break;

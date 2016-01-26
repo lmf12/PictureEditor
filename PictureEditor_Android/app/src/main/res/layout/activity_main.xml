@@ -313,6 +313,7 @@
                 android:orientation="horizontal">
 
                 <RelativeLayout
+                    android:id="@+id/glasses_effect"
                     android:layout_width="0px"
                     android:layout_height="60dp"
                     android:layout_weight="1"
@@ -369,6 +370,7 @@
                 android:orientation="horizontal">
 
                 <RelativeLayout
+                    android:id="@+id/hat_effect"
                     android:layout_width="0px"
                     android:layout_height="60dp"
                     android:layout_weight="1"
@@ -395,6 +397,7 @@
                     android:layout_height="wrap_content"/>
 
                 <RelativeLayout
+                    android:id="@+id/replace_effect"
                     android:layout_width="0px"
                     android:layout_height="60dp"
                     android:layout_weight="1"
