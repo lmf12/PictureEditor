@@ -134,6 +134,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         break;
                     case 4:
                         showReplaceFaceEffect(data);
+                        backInitMenu.setVisibility(View.VISIBLE);
+
+                        //修改完一次后,将路径改为修改后的图片,方便多次修改
+                        if (currentBitmap != null) {
+                            filePath = saveTempImg(currentBitmap, "displaying_temp.jpg");
+                        }
+                        displayBitmap = null;
                         break;
                     case 5:
                         break;
@@ -1054,6 +1061,49 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      * */
     private void showReplaceFaceEffect(String data) {
 
+        try {
+            JSONObject object = new JSONObject(data);
+            JSONArray faces = object.optJSONArray("face");
+            if (faces != null) {
+                for (int i=0; i<faces.length(); ++i) {
+                    JSONObject face = faces.optJSONObject(i);
+                    JSONObject position = face.optJSONObject("position");
+                    JSONObject center = position.optJSONObject("center");
+                    double centerX = center.optDouble("x");
+                    double centerY = center.optDouble("y");
+                    double width = position.optDouble("width");
+                    double height = position.optDouble("height");
+                    double eyeLeftX = position.optJSONObject("eye_left").optDouble("x");
+                    double eyeLeftY = position.optJSONObject("eye_left").optDouble("y");
+                    double eyeRightX = position.optJSONObject("eye_right").optDouble("x");
+                    double eyeRightY = position.optJSONObject("eye_right").optDouble("y");
+
+                    //获取遮罩图片
+                    Bitmap maskBitmap = BitmapFactory.decodeResource(getResources(),
+                            R.mipmap.face1);
+
+                    double glassesCenterX = (eyeLeftX + eyeRightX) / 2;
+                    double glassesCenterY = (eyeLeftY + eyeRightY) / 2;
+                    double faceWidth = initBitmap.getWidth()*width/100;
+
+                    Matrix matrix = new Matrix();
+                    matrix.postScale((float) (faceWidth / maskBitmap.getWidth()), (float) (faceWidth / maskBitmap.getWidth()));
+                    matrix.postRotate((float) (360 * Math.atan((eyeRightY - eyeLeftY) / (eyeRightX - eyeLeftX)) / 2 / Math.PI));  //根据眼睛的倾斜程度旋转
+                    maskBitmap = Bitmap.createBitmap(maskBitmap, 0, 0, maskBitmap.getWidth(), maskBitmap.getHeight(), matrix,
+                            true);
+
+                    //合并图片
+                    currentBitmap = mergeBitmap(currentBitmap == null ? initBitmap : currentBitmap,
+                            maskBitmap, glassesCenterX, glassesCenterY);
+                }
+                if (currentBitmap != null) {
+                    contentPicture.setImageBitmap(currentBitmap);
+                }
+            }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
