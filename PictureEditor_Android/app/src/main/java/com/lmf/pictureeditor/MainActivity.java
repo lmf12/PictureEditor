@@ -124,6 +124,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         break;
                     case 3:
                         showHatEffect(data);
+                        backInitMenu.setVisibility(View.VISIBLE);
+
+                        //修改完一次后,将路径改为修改后的图片,方便多次修改
+                        if (currentBitmap != null) {
+                            filePath = saveTempImg(currentBitmap, "displaying_temp.jpg");
+                        }
+                        displayBitmap = null;
                         break;
                     case 4:
                         showReplaceFaceEffect(data);
@@ -987,6 +994,59 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      * */
     private void showHatEffect(String data) {
 
+        try {
+            JSONObject object = new JSONObject(data);
+            JSONArray faces = object.optJSONArray("face");
+            if (faces != null) {
+                for (int i=0; i<faces.length(); ++i) {
+                    JSONObject face = faces.optJSONObject(i);
+                    JSONObject position = face.optJSONObject("position");
+                    JSONObject center = position.optJSONObject("center");
+                    double centerX = center.optDouble("x");
+                    double centerY = center.optDouble("y");
+                    double width = position.optDouble("width");
+                    double height = position.optDouble("height");
+                    double eyeLeftX = position.optJSONObject("eye_left").optDouble("x");
+                    double eyeLeftY = position.optJSONObject("eye_left").optDouble("y");
+                    double eyeRightX = position.optJSONObject("eye_right").optDouble("x");
+                    double eyeRightY = position.optJSONObject("eye_right").optDouble("y");
+
+                    //获取遮罩图片
+                    Bitmap hatBitmap = BitmapFactory.decodeResource(getResources(),
+                            R.mipmap.hat1);
+
+                    double faceWidth = initBitmap.getWidth()*width/100;
+                    double hatWidth = faceWidth * 1.3;
+
+                    Matrix matrix = new Matrix();
+                    matrix.postScale((float) (hatWidth / hatBitmap.getWidth()), (float) (hatWidth / hatBitmap.getWidth()));
+                    matrix.postRotate((float) (360 * Math.atan((eyeRightY - eyeLeftY) / (eyeRightX - eyeLeftX)) / 2 / Math.PI));  //根据眼睛的倾斜程度旋转
+                    hatBitmap = Bitmap.createBitmap(hatBitmap, 0, 0, hatBitmap.getWidth(), hatBitmap.getHeight(), matrix,
+                            true);
+
+                    int maskWidth = initBitmap.getWidth();
+                    int maskHeight = initBitmap.getHeight();
+                    Bitmap maskBitmap = Bitmap.createBitmap(maskWidth,
+                            maskHeight, Bitmap.Config.ARGB_8888);
+
+                    int hatX = (int)(maskWidth*centerX/100-hatBitmap.getWidth()/2);
+                    int hatY = (int)(maskHeight*centerY/100-maskHeight*height/100/2-hatBitmap.getHeight());
+
+                    Canvas canvas = new Canvas(maskBitmap);
+                    canvas.drawBitmap(hatBitmap, hatX, hatY, new Paint());
+
+                    //合并图片
+                    currentBitmap = mergeBitmap(currentBitmap == null ? initBitmap : currentBitmap,
+                            maskBitmap, 50, 50);
+                }
+                if (currentBitmap != null) {
+                    contentPicture.setImageBitmap(currentBitmap);
+                }
+            }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
