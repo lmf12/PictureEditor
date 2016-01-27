@@ -406,15 +406,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
         }
 
+        currentSelectedId = viewId;
+
         RelativeLayout effectMenu = (RelativeLayout)findViewById(viewId);
         effectMenu.setBackgroundResource(R.drawable.pic_green);
         if (effectGroupCode == 1) {
             ((TextView) effectMenu.getChildAt(0)).setTextColor(getResources().getColor(android.R.color.white));
+            turnImageEffectIcon(0);
         }
         else if (effectGroupCode == 2) {
             ((TextView) effectMenu.getChildAt(1)).setTextColor(getResources().getColor(android.R.color.white));
         }
-        currentSelectedId = viewId;
     }
 
     /**
@@ -430,10 +432,67 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             effectMenu.setBackgroundResource(R.drawable.selector_tool_picture);
             if (effectGroupCode == 1) {
                 ((TextView)effectMenu.getChildAt(0)).setTextColor(new TextView(this).getCurrentTextColor());
+                turnImageEffectIcon(1);
             }
             else if (effectGroupCode == 2) {
                 ((TextView)effectMenu.getChildAt(1)).setTextColor(new TextView(this).getCurrentTextColor());
             }
+        }
+    }
+
+    /**
+     * 反选图像效果面板的图标,type的值0为选中,1为取消
+     * */
+    private void turnImageEffectIcon(int type) {
+
+        if (currentSelectedId == -1) {
+            return;
+        }
+        RelativeLayout effectMenu = (RelativeLayout) findViewById(currentSelectedId);
+        ImageView icon = (ImageView)effectMenu.getChildAt(1);
+        switch (currentSelectedId) {
+            case R.id.grayscale_effect:
+                if (type == 0) {
+                    icon.setBackgroundResource(R.mipmap.icon_grayscale_white);
+                }
+                else {
+                    icon.setBackgroundResource(R.mipmap.icon_grayscale);
+                }
+                break;
+            case R.id.blur_effect:
+                if (type == 0) {
+                    icon.setBackgroundResource(R.mipmap.icon_blur_white);
+                }
+                else {
+                    icon.setBackgroundResource(R.mipmap.icon_blur);
+                }
+                break;
+            case R.id.gammaCorrection_effect:
+                if (type == 0) {
+                    icon.setBackgroundResource(R.mipmap.icon_gamma_white);
+                }
+                else {
+                    icon.setBackgroundResource(R.mipmap.icon_gamma);
+                }
+                break;
+            case R.id.colorize_effect:
+                if (type == 0) {
+                    icon.setBackgroundResource(R.mipmap.icon_colorize_white);
+                }
+                else {
+                    icon.setBackgroundResource(R.mipmap.icon_colorize);
+                }
+                break;
+            case R.id.imageWatermarking_effect:
+                if (type == 0) {
+                    icon.setBackgroundResource(R.mipmap.icon_watermark_white);
+                }
+                else {
+                    icon.setBackgroundResource(R.mipmap.icon_watermark);
+                }
+                break;
+            default:
+                break;
         }
     }
 

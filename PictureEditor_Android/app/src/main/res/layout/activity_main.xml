@@ -192,6 +192,13 @@
                         android:layout_alignParentTop="true"
                         android:text="黑白"/>
 
+                    <ImageView
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:background="@mipmap/icon_grayscale"
+                        android:layout_alignParentBottom="true"
+                        android:layout_alignParentRight="true"/>
+
                 </RelativeLayout>
 
                 <TextView
@@ -212,6 +219,13 @@
                         android:layout_alignParentLeft="true"
                         android:layout_alignParentTop="true"
                         android:text="模糊"/>
+
+                    <ImageView
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:background="@mipmap/icon_blur"
+                        android:layout_alignParentBottom="true"
+                        android:layout_alignParentRight="true"/>
 
                 </RelativeLayout>
             </LinearLayout>
@@ -237,6 +251,13 @@
                         android:layout_alignParentTop="true"
                         android:text="滤镜"/>
 
+                    <ImageView
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:background="@mipmap/icon_gamma"
+                        android:layout_alignParentBottom="true"
+                        android:layout_alignParentRight="true"/>
+
                 </RelativeLayout>
 
                 <TextView
@@ -257,6 +278,13 @@
                         android:layout_alignParentLeft="true"
                         android:layout_alignParentTop="true"
                         android:text="彩色"/>
+
+                    <ImageView
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:background="@mipmap/icon_colorize"
+                        android:layout_alignParentBottom="true"
+                        android:layout_alignParentRight="true"/>
 
                 </RelativeLayout>
             </LinearLayout>
@@ -281,6 +309,13 @@
                         android:layout_alignParentLeft="true"
                         android:layout_alignParentTop="true"
                         android:text="水印"/>
+
+                    <ImageView
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:background="@mipmap/icon_watermark"
+                        android:layout_alignParentBottom="true"
+                        android:layout_alignParentRight="true"/>
 
                 </RelativeLayout>
 
