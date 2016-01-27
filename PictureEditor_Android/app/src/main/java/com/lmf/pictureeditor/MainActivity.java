@@ -114,7 +114,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         backInitMenu.setVisibility(View.VISIBLE);
 
                         //修改完一次后,将路径改为修改后的图片,方便多次修改
-                        filePath = saveTempImg(currentBitmap, "displaying_temp.jpg");
+                        if (currentBitmap != null) {
+                            filePath = saveTempImg(currentBitmap, "displaying_temp.jpg");
+                        }
                         displayBitmap = null;
                         break;
                     case 2:
@@ -961,7 +963,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     double faceWidth = initBitmap.getWidth()*width/100;
 
                     Matrix matrix = new Matrix();
-                    matrix.postScale((float)(faceWidth  / maskBitmap.getWidth()),(float)(faceWidth  / maskBitmap.getWidth()));
+                    matrix.postScale((float) (faceWidth / maskBitmap.getWidth()), (float) (faceWidth / maskBitmap.getWidth()));
+                    matrix.postRotate((float) (360 * Math.atan((eyeRightY - eyeLeftY) / (eyeRightX - eyeLeftX)) / 2 / Math.PI));  //根据眼睛的倾斜程度旋转
                     maskBitmap = Bitmap.createBitmap(maskBitmap, 0, 0, maskBitmap.getWidth(), maskBitmap.getHeight(), matrix,
                             true);
 
