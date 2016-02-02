@@ -58,6 +58,7 @@
 	   				echo replaceFace($base_url.'/upload/'.$now_time."_".$file_name);
 	   				break;
 	   			case '5':
+	   				echo similar($base_url.'/upload/'.$now_time."_".$file_name);
 	   				break;
 	   			default:
 	   				break;

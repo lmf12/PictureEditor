@@ -148,6 +148,33 @@ function replaceFace($img_url) {
 	return $re;
 }
 
+/*相似度*/
+function similar($img_url) {
+
+	$img_url = urlencode($img_url);
+	$api_key = "567e6e7aeab4003e96d7088201356ce9";
+	$api_secret = "gqBNR0lFhu1FZU7xtFdDWZgOxlkbKcb3";
+	$attribute = "age,gender";
+	$request_url = "http://apicn.faceplusplus.com/v2/detection/detect?api_key=".$api_key."&api_secret=".$api_secret."&url=".$img_url."&attribute=".$attribute;
+	$re=file_get_contents($request_url);
+
+	$obj=json_decode($re); 
+
+	$faces = $obj->face;
+
+	if (count($faces) >= 2) {
+		$face_id_1 = $faces[0]->face_id;
+		$face_id_2 = $faces[1]->face_id;
+
+		$url = "https://apicn.faceplusplus.com/v2/recognition/compare?api_secret=".$api_secret."&api_key=".$api_key."&face_id2=".$face_id_2."&face_id1=".$face_id_1;
+		$result=$re."@@@".file_get_contents($url);
+
+		return $result;
+	}
+	else {
+		return $re;
+	}
+}
 
 
 

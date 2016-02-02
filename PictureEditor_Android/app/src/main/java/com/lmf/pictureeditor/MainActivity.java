@@ -44,6 +44,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.DecimalFormat;
 import java.util.Calendar;
 import java.util.Locale;
 
@@ -61,7 +62,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private LinearLayout panel, darkLayer, contentLayer, openCameraMenu, openGalleryMenu, toolLayer;
     private Button openPictureButton;
     private RelativeLayout grayscaleEffect, blurEffect, gammaCorrectionEffect, colorizeEffect, imageWatermarkingEffect;
-    private RelativeLayout ageEffect, glassesEffect, hatEffect, replaceEffect;
+    private RelativeLayout ageEffect, glassesEffect, hatEffect, replaceEffect, similarEffect;
     private TextView openPanelMenu, uploadPictureMenu, savePictureMenu, backInitMenu;
     private ImageView openToolMenu, contentPicture;
 
@@ -120,6 +121,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         displayBitmap = null;
                         break;
                     case 2:
+                        displayBitmap = null;
                         showAgeEffect(data);
                         break;
                     case 3:
@@ -143,6 +145,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         displayBitmap = null;
                         break;
                     case 5:
+                        displayBitmap = null;
+                        showSimilarEffect(data);
                         break;
                     default:
                         break;
@@ -246,6 +250,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.glasses_effect:
             case R.id.hat_effect:
             case R.id.replace_effect:
+            case R.id.similar_effect:
                 cancelSelectedEffect();
                 selectEffect(v.getId());
                 hideTool();
@@ -277,6 +282,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         glassesEffect = (RelativeLayout)findViewById(R.id.glasses_effect);
         hatEffect = (RelativeLayout)findViewById(R.id.hat_effect);
         replaceEffect = (RelativeLayout)findViewById(R.id.replace_effect);
+        similarEffect = (RelativeLayout)findViewById(R.id.similar_effect);
     }
 
     /**
@@ -298,6 +304,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         glassesEffect.setOnClickListener(this);
         hatEffect.setOnClickListener(this);
         replaceEffect.setOnClickListener(this);
+        similarEffect.setOnClickListener(this);
     }
 
     /**
@@ -401,6 +408,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.replace_effect:
                 effectGroupCode = 2;
                 effectCode = 4;
+                break;
+            case R.id.similar_effect:
+                effectGroupCode = 2;
+                effectCode = 5;
                 break;
             default:
                 break;
@@ -1170,6 +1181,99 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      * */
     private void showSimilarEffect(String data) {
 
+        String[] datas = data.split("@@@");
+
+        if (datas.length == 1) {
+            showToast("图片中不足两张人脸");
+        }
+        else {
+
+            data = datas[0];
+            String similarData = datas[1];
+
+            try {
+                JSONObject object = new JSONObject(data);
+                JSONArray faces = object.optJSONArray("face");
+                if (faces != null) {
+                    for (int i=0; i<2; ++i) {
+                        JSONObject face = faces.optJSONObject(i);
+                        JSONObject position = face.optJSONObject("position");
+                        JSONObject center = position.optJSONObject("center");
+                        JSONObject attribute = face.optJSONObject("attribute");
+                        double centerX = center.optDouble("x");
+                        double centerY = center.optDouble("y");
+                        double width = position.optDouble("width");
+                        double height = position.optDouble("height");
+
+                        //获取遮罩图片
+                        int rectWidth = (int)(initBitmap.getWidth()*width/100);
+                        int rectHeight = (int)(initBitmap.getHeight()*height/100);
+                        Bitmap rectBitmap = Bitmap.createBitmap(rectWidth,
+                                rectHeight, Bitmap.Config.ARGB_8888);
+
+                        Paint paint = new Paint();
+                        paint.setColor(Color.WHITE);
+                        paint.setStyle(Paint.Style.STROKE);//设置空心
+                        paint.setAntiAlias(true);
+
+                        Canvas canvas = new Canvas(rectBitmap);
+                        canvas.drawRect(0, 0, rectWidth - 2, rectHeight - 2, paint);
+
+                        //绘制标签
+                        int tagHeight = 100;   //标签的高度
+                        int tagWidth = 240;   //标签的宽度
+
+                        int maskWidth = initBitmap.getWidth();
+                        int maskHeight = initBitmap.getHeight();
+                        Bitmap maskBitmap = Bitmap.createBitmap(maskWidth,
+                                maskHeight, Bitmap.Config.ARGB_8888);
+
+                        int rectX = (int)(maskWidth*centerX/100-rectWidth/2);
+                        int rectY = (int)(maskHeight*centerY/100-rectHeight/2);
+                        canvas = new Canvas(maskBitmap);
+                        canvas.drawBitmap(rectBitmap, rectX,
+                                rectY, paint);
+
+
+                        paint.setColor(Color.WHITE);
+                        canvas.drawLine(rectX + rectWidth / 2, rectY + rectHeight, maskWidth / 2, maskHeight-tagHeight, paint);
+
+                        if (i == 1) {
+                            paint.setStyle(Paint.Style.FILL);
+                            paint.setColor(Color.GRAY);
+
+                            int tagX = (maskWidth - tagWidth) / 2;
+                            int tagY = maskHeight - tagHeight;
+
+                            canvas.drawRect(tagX, tagY, maskWidth - tagX, maskHeight, paint);
+
+                            JSONObject obj = new JSONObject(similarData);
+
+                            DecimalFormat df = new DecimalFormat(".##");
+                            String faceSimilarity = df.format(obj.optDouble("similarity"));
+
+                            paint.setTextSize(30);
+                            paint.setColor(Color.WHITE);
+                            String tagString = "";
+                            tagString += "相似度: " + faceSimilarity + "%";
+                            canvas.drawText(tagString, tagX + 20, tagY + 60, paint);
+                        }
+
+                        //合并图片
+                        displayBitmap = mergeBitmap(displayBitmap == null ? (currentBitmap == null ? initBitmap : currentBitmap) : displayBitmap,
+                                maskBitmap, 50, 50);
+
+                    }
+                    if (displayBitmap != null) {
+                        contentPicture.setImageBitmap(displayBitmap);
+                    }
+                }
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+        }
     }
 
     /**
