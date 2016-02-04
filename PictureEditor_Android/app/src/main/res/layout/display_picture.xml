@@ -86,4 +86,22 @@
         android:layout_marginBottom="30dp"
         android:background="@mipmap/icon_pencil"/>
 
+    <RelativeLayout
+        android:id="@+id/open_color_picker_menu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true">
+        <TextView
+            android:layout_width="40dp"
+            android:layout_height="20dp"
+            android:layout_centerInParent="true"
+            android:background="#ffffff"/>
+        <ImageView
+            android:layout_width="60dp"
+            android:layout_height="30dp"
+            android:background="@mipmap/pic_arrow_up"/>
+    </RelativeLayout>
+
 </RelativeLayout>

@@ -68,6 +68,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private RelativeLayout ageEffect, glassesEffect, hatEffect, replaceEffect, similarEffect;
     private TextView openPanelMenu, uploadPictureMenu, savePictureMenu, backInitMenu;
     private ImageView openToolMenu, contentPicture;
+    private RelativeLayout openColorPickerMenu;
 
     private Bitmap initBitmap;   //初始的图片
     private Bitmap currentBitmap;   //但前编辑后的图片
@@ -250,6 +251,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.share_picture_menu:
                 showShare(displayBitmap == null ? (currentBitmap == null ? initBitmap : currentBitmap) : displayBitmap);
                 break;
+            case R.id.open_color_picker_menu:
+                showToast("colorPicker");
+                openColorPickerMenu.setVisibility(View.GONE);
+                break;
             case R.id.grayscale_effect:
             case R.id.blur_effect:
             case R.id.gammaCorrection_effect:
@@ -363,6 +368,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (currentBitmap != null) {
             backInitMenu.setVisibility(View.VISIBLE);
         }
+        if (currentSelectedId == R.id.colorize_effect) {
+            openColorPickerMenu.setVisibility(View.VISIBLE);   //显示颜色选择菜单
+        }
     }
 
     /**
@@ -376,6 +384,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         savePictureMenu.setVisibility(View.INVISIBLE);
         sharePictureMenu.setVisibility(View.INVISIBLE);
         backInitMenu.setVisibility(View.GONE);
+        openColorPickerMenu.setVisibility(View.GONE);   //隐藏颜色选择菜单
     }
 
     /**
@@ -399,6 +408,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.colorize_effect:
                 effectGroupCode = 1;
                 effectCode = 4;
+                openColorPickerMenu.setVisibility(View.VISIBLE);   //显示颜色选择菜单
                 break;
             case R.id.imageWatermarking_effect:
                 effectGroupCode = 1;
@@ -460,6 +470,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 ((TextView)effectMenu.getChildAt(1)).setTextColor(new TextView(this).getCurrentTextColor());
             }
         }
+        openColorPickerMenu.setVisibility(View.GONE);   //隐藏颜色选择菜单
     }
 
     /**
@@ -587,6 +598,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         backInitMenu = (TextView)content.findViewById(R.id.back_init_menu);
         backInitMenu.setOnClickListener(this);
+
+        openColorPickerMenu = (RelativeLayout)content.findViewById(R.id.open_color_picker_menu);
+        openColorPickerMenu.setOnClickListener(this);
 
         contentPicture = (ImageView)content.findViewById(R.id.content_picture);
         if (imgPath != null) {
