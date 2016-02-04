@@ -48,6 +48,9 @@ import java.text.DecimalFormat;
 import java.util.Calendar;
 import java.util.Locale;
 
+import cn.sharesdk.framework.ShareSDK;
+import cn.sharesdk.onekeyshare.OnekeyShare;
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private static final int OPEN_CAMERA_CODE = 10;  //打开相机代码
@@ -59,7 +62,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private int TAG_RECEIVE_PICTURE = 2;
     private int TAG_RECEIVE_DATA = 3;
 
-    private LinearLayout panel, darkLayer, contentLayer, openCameraMenu, openGalleryMenu, toolLayer;
+    private LinearLayout panel, darkLayer, contentLayer, openCameraMenu, openGalleryMenu, toolLayer, sharePictureMenu;
     private Button openPictureButton;
     private RelativeLayout grayscaleEffect, blurEffect, gammaCorrectionEffect, colorizeEffect, imageWatermarkingEffect;
     private RelativeLayout ageEffect, glassesEffect, hatEffect, replaceEffect, similarEffect;
@@ -244,6 +247,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.save_picture_menu:
                 saveImg(displayBitmap == null ? (currentBitmap == null ? initBitmap : currentBitmap) : displayBitmap);
                 break;
+            case R.id.share_picture_menu:
+                showShare(displayBitmap == null ? (currentBitmap == null ? initBitmap : currentBitmap) : displayBitmap);
+                break;
             case R.id.grayscale_effect:
             case R.id.blur_effect:
             case R.id.gammaCorrection_effect:
@@ -353,6 +359,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         openToolMenu.setVisibility(View.VISIBLE);
         uploadPictureMenu.setVisibility(View.VISIBLE);
         savePictureMenu.setVisibility(View.VISIBLE);
+        sharePictureMenu.setVisibility(View.VISIBLE);
         if (currentBitmap != null) {
             backInitMenu.setVisibility(View.VISIBLE);
         }
@@ -367,6 +374,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         openToolMenu.setVisibility(View.INVISIBLE);
         uploadPictureMenu.setVisibility(View.INVISIBLE);
         savePictureMenu.setVisibility(View.INVISIBLE);
+        sharePictureMenu.setVisibility(View.INVISIBLE);
         backInitMenu.setVisibility(View.GONE);
     }
 
@@ -570,6 +578,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         savePictureMenu = (TextView)content.findViewById(R.id.save_picture_menu);
         savePictureMenu.setOnClickListener(this);
+
+        sharePictureMenu = (LinearLayout)content.findViewById(R.id.share_picture_menu);
+        sharePictureMenu.setOnClickListener(this);
 
         openToolMenu = (ImageView)content.findViewById(R.id.open_tool_menu);
         openToolMenu.setOnClickListener(this);
@@ -1298,6 +1309,41 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         canvas.save(Canvas.ALL_SAVE_FLAG);
         canvas.restore();
         return newmap;
+    }
+
+
+    private void showShare(Bitmap bm) {
+
+        String savePath =  Environment.getExternalStorageDirectory().getAbsolutePath() + "/meitu/temp/";
+        File folder = new File(savePath);
+        if(!folder.exists()) //如果文件夹不存在则创建
+        {
+            folder.mkdirs();
+        }
+        String picName = "shareTemp";
+        String jpegName = savePath + picName +".jpg";
+        try {
+            FileOutputStream fout = new FileOutputStream(jpegName);
+            BufferedOutputStream bos = new BufferedOutputStream(fout);
+
+            bm.compress(Bitmap.CompressFormat.JPEG, 100, bos);
+            bos.flush();
+            bos.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+        ShareSDK.initSDK(this);
+        OnekeyShare oks = new OnekeyShare();
+        //关闭sso授权
+        oks.disableSSOWhenAuthorize();
+
+        // imagePath是图片的本地路径，Linked-In以外的平台都支持此参数
+        oks.setImagePath(jpegName);//确保SDcard下面存在此张图片
+        // 启动分享GUI
+        oks.show(this);
     }
 
 }
