@@ -241,6 +241,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     uploadPicture(filePath);
                 }
                 break;
+            case R.id.save_picture_menu:
+                saveImg(displayBitmap == null ? (currentBitmap == null ? initBitmap : currentBitmap) : displayBitmap);
+                break;
             case R.id.grayscale_effect:
             case R.id.blur_effect:
             case R.id.gammaCorrection_effect:
