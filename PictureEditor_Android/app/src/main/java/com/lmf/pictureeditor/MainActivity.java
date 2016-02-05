@@ -23,6 +23,8 @@ import android.text.format.DateFormat;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -202,7 +204,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 displayPicture(saveTempImg(BitmapFactory.decodeFile(filePath), "displaying.jpg"));
             }
 
-            hidePanel();
+            darkLayer.setVisibility(View.GONE);
+            panel.setVisibility(View.GONE);
         }
     }
 
@@ -347,7 +350,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void showPanel() {
 
         darkLayer.setVisibility(View.VISIBLE);
+        darkLayer.setClickable(true);
         panel.setVisibility(View.VISIBLE);
+
+        Animation animation = AnimationUtils.loadAnimation(this, R.anim.translate_up);
+        animation.setDuration(150);
+
+        panel.startAnimation(animation);
     }
 
     /**
@@ -355,8 +364,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      * */
     private void hidePanel() {
 
-        darkLayer.setVisibility(View.GONE);
-        panel.setVisibility(View.GONE);
+        Animation animation = AnimationUtils.loadAnimation(this, R.anim.translate_down);
+        animation.setDuration(150);
+        animation.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                darkLayer.setVisibility(View.GONE);
+                panel.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+            }
+        });
+
+        darkLayer.setClickable(false);
+        panel.startAnimation(animation);
     }
 
     /**
@@ -365,6 +392,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void showTool() {
 
         toolLayer.setVisibility(View.VISIBLE);
+        toolLayer.setClickable(true);
+
+        Animation animation = AnimationUtils.loadAnimation(this, R.anim.translate_up);
+        animation.setDuration(300);
+
+        toolLayer.startAnimation(animation);
     }
 
     /**
@@ -372,7 +405,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      * */
     private void hideTool() {
 
-        toolLayer.setVisibility(View.GONE);
+        Animation animation = AnimationUtils.loadAnimation(this, R.anim.translate_down);
+        animation.setDuration(300);
+        animation.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                toolLayer.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+            }
+        });
+
+        toolLayer.setClickable(false);
+        toolLayer.startAnimation(animation);
     }
 
     /**
