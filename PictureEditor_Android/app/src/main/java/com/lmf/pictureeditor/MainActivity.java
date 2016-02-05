@@ -269,17 +269,39 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             public void colorChanged(int color) {
                                 arrow.setBackgroundColor(color);
                                 openColorPickerMenu.setVisibility(View.VISIBLE);
+                                Animation animation = AnimationUtils.loadAnimation(MainActivity.this, R.anim.translate_up);
+                                animation.setDuration(200);
+                                openColorPickerMenu.startAnimation(animation);
                             }
                         });
                 dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
                     @Override
                     public void onCancel(DialogInterface dialog) {
                         openColorPickerMenu.setVisibility(View.VISIBLE);
+                        Animation animation = AnimationUtils.loadAnimation(MainActivity.this, R.anim.translate_up);
+                        animation.setDuration(200);
+                        openColorPickerMenu.startAnimation(animation);
                     }
                 });
                 dialog.show();
 
-                openColorPickerMenu.setVisibility(View.GONE);
+                Animation animation = AnimationUtils.loadAnimation(this, R.anim.translate_down);
+                animation.setDuration(200);
+                animation.setAnimationListener(new Animation.AnimationListener() {
+                    @Override
+                    public void onAnimationStart(Animation animation) {
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animation animation) {
+                        openColorPickerMenu.setVisibility(View.GONE);
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animation animation) {
+                    }
+                });
+                openColorPickerMenu.startAnimation(animation);
                 break;
             case R.id.grayscale_effect:
             case R.id.blur_effect:
@@ -435,7 +457,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void showEditMenu() {
 
         Animation animation = AnimationUtils.loadAnimation(this, R.anim.translate_up);
-        animation.setDuration(150);
+        animation.setDuration(200);
+
+        Animation topAnimation = AnimationUtils.loadAnimation(this, R.anim.top_translate_down);
+        topAnimation.setDuration(200);
 
         openPanelMenu.setVisibility(View.VISIBLE);
         openToolMenu.setVisibility(View.VISIBLE);
@@ -444,6 +469,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         sharePictureMenu.setVisibility(View.VISIBLE);
         if (currentBitmap != null) {
             backInitMenu.setVisibility(View.VISIBLE);
+            backInitMenu.startAnimation(topAnimation);
         }
         if (currentSelectedId == R.id.colorize_effect) {
             openColorPickerMenu.setVisibility(View.VISIBLE);   //显示颜色选择菜单
@@ -451,6 +477,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         openToolMenu.startAnimation(animation);
+        openPanelMenu.startAnimation(topAnimation);
+        uploadPictureMenu.startAnimation(topAnimation);
+        savePictureMenu.startAnimation(topAnimation);
+        sharePictureMenu.startAnimation(topAnimation);
     }
 
     /**
@@ -458,15 +488,39 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      * */
     private void hideEditMenu() {
 
-        openPanelMenu.setVisibility(View.INVISIBLE);
-        uploadPictureMenu.setVisibility(View.INVISIBLE);
-        savePictureMenu.setVisibility(View.INVISIBLE);
-        sharePictureMenu.setVisibility(View.INVISIBLE);
-        backInitMenu.setVisibility(View.GONE);
+        //顶部组件
+        Animation topAnimation = AnimationUtils.loadAnimation(this, R.anim.top_translate_up);
+        topAnimation.setDuration(200);
+        topAnimation.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                openPanelMenu.setVisibility(View.INVISIBLE);
+                uploadPictureMenu.setVisibility(View.INVISIBLE);
+                savePictureMenu.setVisibility(View.INVISIBLE);
+                sharePictureMenu.setVisibility(View.INVISIBLE);
+                backInitMenu.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+            }
+        });
+        openPanelMenu.startAnimation(topAnimation);
+        uploadPictureMenu.startAnimation(topAnimation);
+        savePictureMenu.startAnimation(topAnimation);
+        sharePictureMenu.startAnimation(topAnimation);
+        if (currentBitmap != null) {
+            backInitMenu.startAnimation(topAnimation);
+        }
 
 
+        //底部组件
         Animation animation = AnimationUtils.loadAnimation(this, R.anim.translate_down);
-        animation.setDuration(150);
+        animation.setDuration(200);
         animation.setAnimationListener(new Animation.AnimationListener() {
             @Override
             public void onAnimationStart(Animation animation) {
