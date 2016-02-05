@@ -1,6 +1,7 @@
 package com.lmf.pictureeditor;
 
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -10,6 +11,7 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.Handler;
@@ -27,6 +29,8 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.lmf.pictureeditor.view.ColorPickerDialog;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -252,7 +256,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 showShare(displayBitmap == null ? (currentBitmap == null ? initBitmap : currentBitmap) : displayBitmap);
                 break;
             case R.id.open_color_picker_menu:
-                showToast("colorPicker");
+                final TextView arrow = (TextView)openColorPickerMenu.getChildAt(0);
+                ColorPickerDialog dialog = new ColorPickerDialog(this, ((ColorDrawable)arrow.getBackground()).getColor(), null,
+                        new ColorPickerDialog.OnColorChangedListener() {
+                            @Override
+                            public void colorChanged(int color) {
+                                arrow.setBackgroundColor(color);
+                                openColorPickerMenu.setVisibility(View.VISIBLE);
+                            }
+                        });
+                dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialog) {
+                        openColorPickerMenu.setVisibility(View.VISIBLE);
+                    }
+                });
+                dialog.show();
+
                 openColorPickerMenu.setVisibility(View.GONE);
                 break;
             case R.id.grayscale_effect:
@@ -688,10 +708,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      * */
     private void uploadPicture(final String file) {
 
+        String colorCode = null;
+        if (currentSelectedId == R.id.colorize_effect) {
+            colorCode = Integer.toHexString(((ColorDrawable) ((TextView) openColorPickerMenu.getChildAt(0)).getBackground()).getColor());
+            colorCode = "#" + colorCode.substring(2, colorCode.length());
+        }
+
+        final String finalColorCode = colorCode;
+
         new Thread(new Runnable() {
             @Override
             public void run() {
-                uploadFile(BASE_URL+"/pictureUpload.php", file);
+                uploadFile(BASE_URL+"/pictureUpload.php", file, finalColorCode);
             }
         }).start();
     }
@@ -699,7 +727,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     /**
      *上传文件至Server，uploadUrl：接收文件的处理页面
      * */
-    private void uploadFile(String uploadUrl, String srcPath) {
+    private void uploadFile(String uploadUrl, String srcPath, String colorCode) {
 
         String end = "\r\n";
         String twoHyphens = "--";
@@ -724,6 +752,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             dos.writeBytes(twoHyphens + boundary + end);
             dos.writeBytes("Content-Disposition: form-data; name=\"uploadedfile\"; filename=\""
                     + effectGroupCode + "@" + effectCode+"@"+ srcPath.substring(srcPath.lastIndexOf("/") + 1)
+                    + (colorCode != null ? "@" + colorCode : "")
                     + "\""
                     + end);
             dos.writeBytes(end);
@@ -1324,7 +1353,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         canvas.restore();
         return newmap;
     }
-
 
     private void showShare(Bitmap bm) {
 

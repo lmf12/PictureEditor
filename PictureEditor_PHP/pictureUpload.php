@@ -8,6 +8,7 @@
 
 	$file_name = $_FILES['uploadedfile']['name'];
 
+	$init_string = $file_name;
 	$edit_group = explode("@",$file_name)[0];
 	$edit_type = explode("@",$file_name)[1];
 	$file_name = explode("@",$file_name)[2];
@@ -31,7 +32,7 @@
 					gammaCorrection('./upload/'.$now_time."_".$file_name, './edit/'.$now_time."_".$file_name);
 					break;
 				case '4':
-					colorize('./upload/'.$now_time."_".$file_name, './edit/'.$now_time."_".$file_name);
+					colorize('./upload/'.$now_time."_".$file_name, './edit/'.$now_time."_".$file_name, explode("@",$init_string)[3]);
 					break;
 				case '5':
 					imageWatermarking('./upload/'.$now_time."_".$file_name, './edit/'.$now_time."_".$file_name);

@@ -42,12 +42,12 @@ function gammaCorrection($soure, $target) {
 
 
 /*色彩化*/
-function colorize($soure, $target) {
+function colorize($soure, $target, $color) {
 	$imagine = new Imagine\Gd\Imagine();
 
 	$image = $imagine->open($soure);
 
-	$pink = $image->palette()->color('#FF00D0');
+	$pink = $image->palette()->color($color);
 
 	$image->effects()
 	    ->colorize($pink);
