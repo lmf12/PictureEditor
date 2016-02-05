@@ -206,6 +206,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             darkLayer.setVisibility(View.GONE);
             panel.setVisibility(View.GONE);
+            if (currentSelectedId == R.id.colorize_effect) {
+                openColorPickerMenu.setVisibility(View.VISIBLE);
+            }
         }
     }
 
@@ -431,6 +434,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      * */
     private void showEditMenu() {
 
+        Animation animation = AnimationUtils.loadAnimation(this, R.anim.translate_up);
+        animation.setDuration(150);
+
         openPanelMenu.setVisibility(View.VISIBLE);
         openToolMenu.setVisibility(View.VISIBLE);
         uploadPictureMenu.setVisibility(View.VISIBLE);
@@ -441,7 +447,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
         if (currentSelectedId == R.id.colorize_effect) {
             openColorPickerMenu.setVisibility(View.VISIBLE);   //显示颜色选择菜单
+            openColorPickerMenu.startAnimation(animation);
         }
+
+        openToolMenu.startAnimation(animation);
     }
 
     /**
@@ -450,12 +459,34 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void hideEditMenu() {
 
         openPanelMenu.setVisibility(View.INVISIBLE);
-        openToolMenu.setVisibility(View.INVISIBLE);
         uploadPictureMenu.setVisibility(View.INVISIBLE);
         savePictureMenu.setVisibility(View.INVISIBLE);
         sharePictureMenu.setVisibility(View.INVISIBLE);
         backInitMenu.setVisibility(View.GONE);
-        openColorPickerMenu.setVisibility(View.GONE);   //隐藏颜色选择菜单
+
+
+        Animation animation = AnimationUtils.loadAnimation(this, R.anim.translate_down);
+        animation.setDuration(150);
+        animation.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                openToolMenu.setVisibility(View.GONE);
+                openColorPickerMenu.setVisibility(View.GONE);   //隐藏颜色选择菜单
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+            }
+        });
+
+        openToolMenu.startAnimation(animation);
+        if (currentSelectedId == R.id.colorize_effect) {
+            openColorPickerMenu.startAnimation(animation);
+        }
     }
 
     /**
