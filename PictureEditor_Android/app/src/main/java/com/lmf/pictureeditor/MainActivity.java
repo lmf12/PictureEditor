@@ -1283,10 +1283,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                     //获取遮罩图片
                     Bitmap hatBitmap = BitmapFactory.decodeResource(getResources(),
-                            R.mipmap.hat1);
+                            R.mipmap.hat3);
 
                     double faceWidth = initBitmap.getWidth()*width/100;
-                    double hatWidth = faceWidth * 1.3;
+                    double hatWidth = faceWidth * 2.4;
 
                     Matrix matrix = new Matrix();
                     matrix.postScale((float) (hatWidth / hatBitmap.getWidth()), (float) (hatWidth / hatBitmap.getWidth()));
@@ -1300,7 +1300,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             maskHeight, Bitmap.Config.ARGB_8888);
 
                     int hatX = (int)(maskWidth*centerX/100-hatBitmap.getWidth()/2);
-                    int hatY = (int)(maskHeight*centerY/100-maskHeight*height/100/2-hatBitmap.getHeight());
+                    int hatY = (int)(maskHeight*centerY/100-maskHeight*height/100/2-hatBitmap.getHeight()
+                            + 0.15*hatBitmap.getHeight());
+
+                    //修正倾斜度
+                    double angle = Math.atan((eyeRightY - eyeLeftY) / (eyeRightX - eyeLeftX));   //弧度
+                    double faceToHat = (maskHeight*height/100 + hatBitmap.getHeight()) / 2;  //脸中心位置到帽子中心位置的距离
+                    double deltaX = faceToHat * Math.sin(angle) * Math.cos(angle);
+                    double deltaY = faceToHat * Math.sin(angle) * Math.sin(angle);
+                    hatX += deltaX;
+                    hatY += deltaY;
 
                     Canvas canvas = new Canvas(maskBitmap);
                     canvas.drawBitmap(hatBitmap, hatX, hatY, new Paint());
